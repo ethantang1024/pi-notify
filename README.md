@@ -24,72 +24,38 @@
 
 ---
 
-## 🐧 Standard Linux Compatibility & Environment Analysis
+## 🐧 Cross-Platform & Linux Compatibility Matrix
 
-On Linux, desktop notifications adhere to the **Freedesktop Desktop Notifications Specification** over D-Bus. This extension is engineered for seamless cross-distro compatibility:
+### 1. Operating System & Desktop Environment Matrix
 
-### 1. Prerequisites by Distribution
+| OS / Distribution | Desktop / Window Manager | Prerequisite Install Command | Notification Daemon / API | Audio Cascade (4 Tiers) | Delivery Status |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| **Windows 10 / 11** | Windows Shell | *None (built-in PowerShell)* | Win32 `NotifyIcon` BalloonTip | `[console]::beep` | ✅ 100% Native |
+| **Ubuntu / Debian / Mint** | GNOME / XFCE / MATE | `apt install -y libnotify-bin pulseaudio-utils` | GNOME Shell / `xfce4-notifyd` | `paplay` → `pw-play` → `aplay` → Bell | ✅ 100% Native |
+| **Fedora / RHEL / CentOS** | GNOME / KDE Plasma | `dnf install -y libnotify pulseaudio-utils` | GNOME Shell / `knotify` | `pw-play` → `paplay` → `aplay` → Bell | ✅ 100% Native |
+| **Arch / Manjaro** | KDE / Hyprland / Sway | `pacman -S libnotify libpulse` | `knotify` / `dunst` / `mako` | `pw-play` → `paplay` → `aplay` → Bell | ✅ 100% Native |
+| **openSUSE (Tumbleweed/Leap)**| KDE Plasma / GNOME | `zypper install -y libnotify-tools pulseaudio-utils` | Plasma / GNOME | `pw-play` → `paplay` → `aplay` → Bell | ✅ 100% Native |
+| **NixOS** | Niri / Noctalia / GNOME | `pkgs.libnotify`, `pkgs.pulseaudio` | Noctalia / GNOME / `mako` | PipeWire / `paplay` | ✅ 100% Native |
+| **Alpine Linux** | Sway / Minimal | `apk add libnotify pulseaudio-utils` | `mako` / `fnott` | ALSA / `paplay` | ✅ 100% Native |
+| **macOS** | Aqua Desktop | *None (built-in)* | `osascript` Notification Center | `afplay` native audio | ✅ 100% Native |
+| **Headless / SSH Remote** | Pure CLI Terminal | *None required* | Degrades to OSC 777 / OSC 99 | Terminal Bell (`\x07`) | 🔄 Remote Pass-through |
 
-To enable native desktop popups and audio alerts on your distribution:
+### 2. Terminal Emulators & Focus Sensing (DECSET 1004) Matrix
 
-| Distribution Family | Installation Command | Packages Included |
-| :--- | :--- | :--- |
-| **Ubuntu / Debian / Mint / Pop!_OS** | `sudo apt update && sudo apt install -y libnotify-bin pulseaudio-utils` | `notify-send`, `paplay` |
-| **Fedora / RHEL / CentOS Stream / Rocky** | `sudo dnf install -y libnotify pulseaudio-utils` | `notify-send`, `paplay` |
-| **Arch Linux / Manjaro / EndeavourOS** | `sudo pacman -S --needed libnotify libpulse` | `notify-send`, `paplay` |
-| **openSUSE (Tumbleweed / Leap)** | `sudo zypper install -y libnotify-tools pulseaudio-utils` | `notify-send`, `paplay` |
-| **Alpine Linux** | `sudo apk add libnotify pulseaudio-utils` | `notify-send`, `paplay` |
-| **NixOS** | `environment.systemPackages = [ pkgs.libnotify pkgs.pulseaudio ];` | `notify-send`, `paplay` |
-
-### 2. Desktop Environment & Notification Daemons
-
-`notify-send` dispatches messages to the `org.freedesktop.Notifications` service on the user D-Bus session:
-
-| Desktop Environment / Window Manager | Notification Daemon | Status | Experience |
-| :--- | :--- | :---: | :--- |
-| **GNOME 40+ (Ubuntu, Fedora, Debian)** | Built-in GNOME Shell Daemon | ✅ Full Support | Top-screen transient banner, logged into calendar center |
-| **KDE Plasma 5 / 6 (Arch, Kubuntu, openSUSE)** | Plasma Workspace (`knotify`) | ✅ Full Support | Bottom-right curved card with hover actions |
-| **XFCE4 / MATE / Cinnamon** | `xfce4-notifyd` / `mate-notification-daemon` | ✅ Full Support | Lightweight desktop notification card |
-| **Hyprland (Wayland)** | `dunst` / `swaync` / `mako` | ✅ Full Support | Fully customizable CSS notification overlay |
-| **Sway / River (Wayland)** | `mako` / `fnott` | ✅ Full Support | Native Wayland overlay |
-| **Niri (Wayland Tiling)** | `noctalia` / `mako` / `dunst` | ✅ Full Support | Smooth transitions with Noctalia desktop shell |
-| **i3 / bspwm / awesome (X11)** | `dunst` | ✅ Full Support | Minimalist floating notifications |
-
-> [!NOTE]
-> If using a standalone window manager (like i3, Sway, or Hyprland), ensure an active notification daemon (such as `dunst` or `mako`) is running in your session. Mainstream desktop environments (GNOME, KDE, XFCE) have this running out of the box.
-
-### 3. Cascading Audio Drivers (PulseAudio / PipeWire / ALSA)
-
-Linux audio setups vary widely. To prevent silent crashes, audio playback features a multi-tiered fallback:
-1. **PulseAudio Preferred**: If `paplay` is detected, plays `/usr/share/sounds/freedesktop/stereo/complete.oga` with volume control;
-2. **PipeWire Direct**: If running pure PipeWire without pulse wrappers, falls back to `pw-play --volume`;
-3. **ALSA Core**: If only kernel ALSA is present, falls back to `aplay -q`;
-4. **Terminal Bell**: If no sound backend binary is found, emits `\x07` (ASCII Bell).
-
-### 4. Terminal Focus Tracking (DECSET 1004)
-
-| Terminal Emulator | DECSET 1004 Support | Behavior |
-| :--- | :---: | :--- |
-| **WezTerm** | ✅ Full Support | Emits `\x1b[O` on defocus, `\x1b[I` on focus |
-| **Kitty** | ✅ Full Support | Native DECSET 1004 + OSC 99 |
-| **Ghostty** | ✅ Full Support | Native DECSET 1004 + OSC 9 / 777 |
-| **Foot (Wayland)** | ✅ Full Support | Lightweight Wayland terminal, fully supported |
-| **GNOME Terminal / Ptyxis / Tilix** | ✅ Full Support | VTE 0.40+ engine with focus reporting |
-| **Windows Terminal (Win11 / WSL2)** | ✅ Full Support | 1.16+ native focus reporting through PTY |
-| **Alacritty** | ⚠️ Graceful Fallback | Focus reporting may be unavailable; gracefully falls back to time heuristics without errors |
+| Terminal Emulator | DECSET 1004 Focus Tracking | Remote Pass-through (WSL2 / SSH) | Notification Protocol | Configuration Notes & Fallback |
+| :--- | :---: | :---: | :--- | :--- |
+| **WezTerm** | ✅ Full Support (`\x1b[I` / `\x1b[O`) | ✅ Full Pass-through | Win32 Toast / `notify-send` / OSC 9 | Works out-of-the-box, sensitive focus tracking |
+| **Windows Terminal** | ✅ Full Support (1.16+) | ✅ Full Pass-through | Win32 Shell Tray BalloonTip | Works out-of-the-box, passes through WSL2 PTY |
+| **Kitty** | ✅ Full Support | ✅ Full Pass-through | Linux `notify-send` / OSC 99 | Works out-of-the-box |
+| **Ghostty** | ✅ Full Support | ✅ Full Pass-through | OS Native / OSC 9 / OSC 777 | Works out-of-the-box |
+| **Foot (Wayland)** | ✅ Full Support | ✅ Full Pass-through | Linux `notify-send` | Ultra-fast Wayland terminal, out-of-the-box |
+| **GNOME Terminal / Ptyxis / Tilix** | ✅ Full Support (VTE 0.40+) | ✅ Full Pass-through | Linux `notify-send` | Default terminal across major distributions |
+| **Tmux (Multiplexer)** | ⚡ Config Required | ✅ Full Pass-through | Inherits active client focus | Requires `set -g focus-events on` in `~/.tmux.conf` |
+| **Alacritty** | ⚠️ Graceful Fallback | ⚠️ Graceful Fallback | OS Native Notification | Falls back to away duration heuristics safely |
 
 > [!TIP]
-> **Using inside tmux**: Add the following line to `~/.tmux.conf` to forward focus events from the host terminal:
-> ```tmux
-> set -g focus-events on
-> ```
-
-### 5. Headless Servers & SSH Remote Sessions
-
-- When connecting to a remote Linux server via SSH without an X11 or Wayland display:
-  - The extension detects the lack of a display server;
-  - It automatically routes notifications as OSC 777 or OSC 99 sequences through the PTY;
-  - Your local client terminal (e.g., WezTerm, Kitty, or Windows Terminal) receives the escape sequence and renders the notification on your local machine!
+> 1. **Standalone Window Managers (i3 / Sway / Hyprland)**: Ensure a notification daemon (e.g. `dunst &`, `mako &`, or `swaync &`) is running in your session.
+> 2. **Tmux Users**: Append `set -g focus-events on` to `~/.tmux.conf` so terminal focus events pass through cleanly.
 
 ---
 

@@ -24,71 +24,38 @@
 
 ---
 
-## 🐧 普通 Linux（主流发行版）深度兼容性与环境适配分析
+## 🐧 全平台与主流 Linux 兼容性矩阵 (Compatibility Matrix)
 
-在主流 Linux 操作系统与桌面环境下，系统通知体系高度依赖 **Freedesktop Desktop Notifications Specification**（D-Bus 规范）。本扩展对此提供了全面、严谨的兼容与降级支持：
+### 1. 操作系统与桌面环境兼容矩阵
 
-### 1. 各主流发行版前置依赖安装
+| 操作系统 / 发行版 | 桌面环境 / 窗口管理器 | 前置依赖安装命令 | 通知守护进程 (Daemon) | 音频容灾链 (4级) | 交付效果 |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| **Windows 10 / 11** | Windows Shell | *无需安装 (内置 PowerShell)* | Win32 `NotifyIcon` 托盘气泡 | `[console]::beep` | ✅ 完美原生 |
+| **Ubuntu / Debian / Mint** | GNOME / XFCE / MATE | `apt install -y libnotify-bin pulseaudio-utils` | GNOME Shell / `xfce4-notifyd` | `paplay` → `pw-play` → `aplay` → Bell | ✅ 完美原生 |
+| **Fedora / RHEL / CentOS** | GNOME / KDE Plasma | `dnf install -y libnotify pulseaudio-utils` | GNOME Shell / `knotify` | `pw-play` → `paplay` → `aplay` → Bell | ✅ 完美原生 |
+| **Arch / Manjaro** | KDE / Hyprland / Sway | `pacman -S libnotify libpulse` | `knotify` / `dunst` / `mako` | `pw-play` → `paplay` → `aplay` → Bell | ✅ 完美原生 |
+| **openSUSE (Tumbleweed/Leap)**| KDE Plasma / GNOME | `zypper install -y libnotify-tools pulseaudio-utils` | Plasma / GNOME | `pw-play` → `paplay` → `aplay` → Bell | ✅ 完美原生 |
+| **NixOS** | Niri / Noctalia / GNOME | `pkgs.libnotify`, `pkgs.pulseaudio` | Noctalia / GNOME / `mako` | PipeWire / `paplay` | ✅ 完美原生 |
+| **Alpine Linux** | Sway / Minimal | `apk add libnotify pulseaudio-utils` | `mako` / `fnott` | ALSA / `paplay` | ✅ 完美原生 |
+| **macOS** | Aqua Desktop | *无需安装 (系统内置)* | `osascript` 通知中心 | `afplay` 原生音效 | ✅ 完美原生 |
+| **Headless / SSH 远程无桌面** | 纯 CLI 终端 | *无需安装* | 降级透传 OSC 777 / OSC 99 | Terminal Bell (`\x07`) | 🔄 本地响应 |
 
-在各 Linux 发行版中，通知投递依赖 `notify-send`（由 `libnotify` 提供），音效依赖系统音频播放器：
+### 2. 终端工具与焦点感知 (DECSET 1004) 支持矩阵
 
-| 发行版系列 | 安装命令 | 包含的底层工具 |
-| :--- | :--- | :--- |
-| **Ubuntu / Debian / Mint / Pop!_OS** | `sudo apt update && sudo apt install -y libnotify-bin pulseaudio-utils` | `notify-send`、`paplay` |
-| **Fedora / RHEL / CentOS Stream / Rocky** | `sudo dnf install -y libnotify pulseaudio-utils` | `notify-send`、`paplay` |
-| **Arch Linux / Manjaro / EndeavourOS** | `sudo pacman -S --needed libnotify libpulse` | `notify-send`、`paplay` |
-| **openSUSE (Tumbleweed / Leap)** | `sudo zypper install -y libnotify-tools pulseaudio-utils` | `notify-send`、`paplay` |
-| **Alpine Linux** | `sudo apk add libnotify pulseaudio-utils` | `notify-send`、`paplay` |
-| **NixOS** | `environment.systemPackages = [ pkgs.libnotify pkgs.pulseaudio ];` | `notify-send`、`paplay` |
-
-### 2. 桌面环境与通知守护进程 (Notification Daemons) 兼容矩阵
-
-`notify-send` 通过 D-Bus 总线向 `org.freedesktop.Notifications` 目标服务发送通知请求：
-
-| 桌面环境 / 窗口管理器 | 通知接收端服务 (Daemon) | 兼容状态 | 表现形式 |
-| :--- | :--- | :---: | :--- |
-| **GNOME 40+ (Ubuntu / Fedora / Debian)** | GNOME Shell 内置通知总线 | ✅ 完美兼容 | 屏幕顶部悬浮弹窗，自动收纳至日历通知中心 |
-| **KDE Plasma 5 / 6 (Arch / openSUSE / Kubuntu)** | Plasma Workspace (`knotify`) | ✅ 完美兼容 | 右下角原生弧角卡片，支持悬停与历史记录 |
-| **XFCE4 / MATE / Cinnamon** | `xfce4-notifyd` / `mate-notification-daemon` | ✅ 完美兼容 | 桌面右上角经典卡片通知 |
-| **Hyprland (Wayland)** | `dunst` / `swaync` / `mako` | ✅ 完美兼容 | 平铺桌面美化弹窗，支持 CSS 自定义样式与快捷键清除 |
-| **Sway / River (Wayland)** | `mako` / `fnott` | ✅ 完美兼容 | 轻量 Wayland 瞬态弹窗 |
-| **Niri (Wayland 平铺合成器)** | `noctalia` / `mako` / `dunst` | ✅ 完美兼容 | 配合 Noctalia 现代外壳提供平滑过渡动效 |
-| **i3 / bspwm / awesome (X11)** | `dunst` | ✅ 完美兼容 | X11 极简悬浮通知卡片 |
-
-> [!NOTE]
-> 如果你在轻量窗口管理器（如 i3 / Sway / Hyprland）中未收到通知，请确保后台已启动至少一种通知守护进程（如 `dunst &` 或 `mako &`）。主流桌面环境（GNOME / KDE / XFCE）已开箱自带。
-
-### 3. 多音频驱动级联容灾机制 (PulseAudio / PipeWire / ALSA)
-
-Linux 下音频后端繁多，本扩展内置了级联自动探测逻辑，**绝不因为单一音频命令缺失而抛错**：
-1. **PulseAudio 优先**：若系统中存在 `paplay`，以配置音量调用系统音频 `/usr/share/sounds/freedesktop/stereo/complete.oga`；
-2. **PipeWire 兜底**：若在纯 PipeWire 环境（未装 Pulse 兼容层）探测到 `pw-play`，自动调用 `pw-play --volume`；
-3. **ALSA 基础层兜底**：若仅有纯内核级 ALSA，自动调用 `aplay -q`；
-4. **终极终端蜂鸣**：若系统无任何可用声卡播放器，自动回退向终端输出 `\x07`（ASCII Bell 蜂鸣）。
-
-### 4. 终端焦点感知 (DECSET 1004) 兼容性
-
-| 终端仿真器 | DECSET 1004 焦点上报 | 行为与特性 |
-| :--- | :---: | :--- |
-| **WezTerm** | ✅ 完美支持 | 切出终端发出 `\x1b[O`，切回发出 `\x1b[I` |
-| **Kitty** | ✅ 完美支持 | 支持 DECSET 1004，支持 OSC 99 协议 |
-| **Ghostty** | ✅ 完美支持 | 原生支持焦点感知与 OSC 9 / OSC 777 |
-| **Foot (Wayland)** | ✅ 完美支持 | 极速轻量 Wayland 终端，完美支持 DECSET 1004 |
-| **GNOME Terminal / Ptyxis / Tilix** | ✅ 完美支持 | 基于 VTE 0.40+ 核心，完整支持焦点汇报 |
-| **Windows Terminal (Win11 / WSL2)** | ✅ 完美支持 | 1.16+ 原生支持 DECSET 1004，WSL2 PTY 完美穿透 |
-| **Alacritty** | ⚠️ 降级兜底 | 部分发行版版本未开启焦点汇报；插件自动降级为耗时与延迟检测，安全静默不崩溃 |
+| 终端工具 (Terminal) | DECSET 1004 焦点上报 | 远程穿透 (WSL2 / SSH) | 桌面通知投递方式 | 配置说明 / 容灾行为 |
+| :--- | :---: | :---: | :--- | :--- |
+| **WezTerm** | ✅ 完美支持 (`\x1b[I` / `\x1b[O`) | ✅ 完美穿透 | Win32 气泡 / `notify-send` / OSC 9 | 开箱即用，焦点感知灵敏 |
+| **Windows Terminal** | ✅ 完美支持 (1.16+) | ✅ 完美穿透 | Win32 托盘气泡 | 开箱即用，WSL2 PTY 完美穿透 |
+| **Kitty** | ✅ 完美支持 | ✅ 完美穿透 | Linux `notify-send` / OSC 99 | 开箱即用 |
+| **Ghostty** | ✅ 完美支持 | ✅ 完美穿透 | OS 原生 / OSC 9 / OSC 777 | 开箱即用 |
+| **Foot (Wayland)** | ✅ 完美支持 | ✅ 完美穿透 | Linux `notify-send` | 极速轻量，开箱即用 |
+| **GNOME Terminal / Ptyxis / Tilix** | ✅ 完美支持 (VTE 0.40+) | ✅ 完美穿透 | Linux `notify-send` | 主流发行版默认开箱即用 |
+| **Tmux (复用器)** | ⚡ 依赖配置开启 | ✅ 完美穿透 | 跟随当前活跃窗口判定 | `~/.tmux.conf` 需加 `set -g focus-events on` |
+| **Alacritty** | ⚠️ 自动降级兜底 | ⚠️ 自动降级 | OS 原生系统通知 | 无焦点事件时自动走离开时长检测，安全静默不崩溃 |
 
 > [!TIP]
-> **在 tmux 中使用**：若在 Linux 终端中运行了 tmux，请确保在 `~/.tmux.conf` 中追加以下配置以允许终端向 tmux 透传焦点事件：
-> ```tmux
-> set -g focus-events on
-> ```
-
-### 5. 无桌面环境与 SSH 远程服务器场景
-
-- 若你在无显示屏的 Linux 服务器（Headless Server）上通过 SSH 连接运行 Pi：
-  - 扩展检测到不存在图形界面显示服务时，**自动将通知转为 OSC 777 / OSC 99 控制序列**；
-  - 本地宿主终端（如本地的 WezTerm / Windows Terminal / Kitty）接收到 SSH 输出流后，在本地桌面直接触发弹窗！
+> 1. **独立窗口管理器（i3 / Sway / Hyprland）**：请确保后台已启动任一通知服务（如 `dunst &`、`mako &` 或 `swaync &`）。
+> 2. **Tmux 用户**：请务必在 `~/.tmux.conf` 中追加 `set -g focus-events on` 以便终端向内层透传焦点事件。
 
 ---
 

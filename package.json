@@ -1,0 +1,42 @@
+{
+  "name": "@yangzhaoyunfei/pi-notify",
+  "version": "1.0.0",
+  "description": "Focus-aware desktop notifications and sounds for Pi coding agent. Fires on task completion, errors, and questions with DECSET 1004 terminal focus tracking and 100% reliable native OS delivery (Windows Shell NotifyIcon, Linux libnotify).",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "pi-extension",
+    "notify",
+    "notification",
+    "focus-aware",
+    "terminal-focus",
+    "decset-1004",
+    "sound",
+    "desktop",
+    "alert"
+  ],
+  "license": "MIT",
+  "homepage": "https://gitee.com/yangzhaoyunfei/pi-notify#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitee.com/yangzhaoyunfei/pi-notify.git"
+  },
+  "files": [
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "extensions/index.js",
+    "extensions/package.json"
+  ],
+  "scripts": {
+    "test": "node --test extensions/test/*.test.js"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/index.js"
+    ]
+  },
+  "publishConfig": {
+    "access": "private"
+  }
+}

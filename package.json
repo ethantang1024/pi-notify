@@ -16,10 +16,10 @@
     "alert"
   ],
   "license": "MIT",
-  "homepage": "https://gitee.com/yangzhaoyunfei/pi-notify#readme",
+  "homepage": "https://github.com/ethantang1024/pi-notify#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://gitee.com/yangzhaoyunfei/pi-notify.git"
+    "url": "git+https://github.com/ethantang1024/pi-notify.git"
   },
   "files": [
     "README.md",
@@ -37,6 +37,6 @@
     ]
   },
   "publishConfig": {
-    "access": "private"
+    "access": "public"
   }
 }

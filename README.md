@@ -39,7 +39,7 @@
 ```json
 {
   "packages": [
-    "git:gitee.com/yangzhaoyunfei/pi-notify.git"
+    "git:github.com/ethantang1024/pi-notify.git"
   ],
   "notify": {
     "focusAware": true,

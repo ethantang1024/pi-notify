@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 (2026-10-31)
+
+### Features & Documentation
+- Added bilingual documentation (`README.md` in English and `README_zh.md` in Simplified Chinese).
+- Added in-depth compatibility matrix and architecture analysis for standard Linux distributions (Ubuntu, Debian, Fedora, Arch, openSUSE, Alpine, NixOS) across GNOME, KDE, XFCE, Hyprland, Sway, Niri, and i3.
+- Enhanced Linux sound driver cascade: fallback across PulseAudio (`paplay`), PipeWire (`pw-play`), and ALSA (`aplay`).
+
 ## 1.0.0 (2026-10-31)
 
 ### Features

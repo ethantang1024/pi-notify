@@ -166,9 +166,23 @@ export function playSound(volume, backend = detectBackend()) {
     case "windows":
       run("powershell.exe", ["-NoProfile", "-Command", "[console]::beep(800, 300)"]);
       return;
-    case "linux":
-      run("paplay", ["--volume=" + Math.round(v * 65536), "/usr/share/sounds/freedesktop/stereo/complete.oga"].filter(Boolean));
+    case "linux": {
+      const soundFile = "/usr/share/sounds/freedesktop/stereo/complete.oga";
+      if (hasBinary("paplay")) {
+        run("paplay", ["--volume=" + Math.round(v * 65536), soundFile]);
+      } else if (hasBinary("pw-play")) {
+        run("pw-play", ["--volume=" + v, soundFile]);
+      } else if (hasBinary("aplay")) {
+        run("aplay", ["-q", "/usr/share/sounds/alsa/Front_Center.wav"]);
+      } else {
+        try {
+          if (process.stdout && process.stdout.isTTY) process.stdout.write("\x07");
+        } catch {
+          /* best-effort */
+        }
+      }
       return;
+    }
     case "darwin":
       run("afplay", ["/System/Library/Sounds/Glass.aiff"]);
       return;

@@ -10,7 +10,7 @@
 ## 1.0.0 (2026-10-31)
 
 ### Features
-- Initial release of `@yangzhaoyunfei/pi-notify`.
+- Initial release of `@ethantang1024/pi-notify`.
 - Added DECSET 1004 terminal focus tracking (`\x1b[?1004h` / `\x1b[?1004l`).
 - Integrated 100% reliable native OS delivery:
   - Windows: PowerShell WinForms `NotifyIcon` BalloonTip + `[console]::beep`.

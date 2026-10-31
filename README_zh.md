@@ -1,4 +1,4 @@
-# @yangzhaoyunfei/pi-notify
+# @ethantang1024/pi-notify
 
 [English](README.md) | [简体中文](README_zh.md)
 

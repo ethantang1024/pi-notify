@@ -1,5 +1,5 @@
 /**
- * @yangzhaoyunfei/pi-notify — Focus-aware desktop notifications and sounds for Pi.
+ * @ethantang1024/pi-notify — Focus-aware desktop notifications and sounds for Pi.
  *
  * Combines 100% reliable native OS delivery with DECSET 1004 terminal focus tracking:
  *   - Windows: PowerShell WinForms NotifyIcon (Shell Tray BalloonTip) + console beep.

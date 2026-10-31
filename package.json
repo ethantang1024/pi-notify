@@ -1,5 +1,5 @@
 {
-  "name": "@yangzhaoyunfei/pi-notify",
+  "name": "@ethantang1024/pi-notify",
   "version": "1.0.1",
   "description": "Focus-aware desktop notifications and sounds for Pi coding agent. Fires on task completion, errors, and questions with DECSET 1004 terminal focus tracking and 100% reliable native OS delivery (Windows Shell NotifyIcon, Linux libnotify).",
   "keywords": [
